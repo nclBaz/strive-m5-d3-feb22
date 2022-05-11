@@ -43,6 +43,11 @@ const usersJSONPath = join(dirname(fileURLToPath(import.meta.url)), "users.json"
 
 // ***********************************************************************************
 
+const yetAnotherMiddleware = (req, res, next) => {
+  console.log("bla bla bla bla")
+  next()
+}
+
 // 1.
 usersRouter.post("/", (req, res) => {
   // 1. Read the request body to obtain the new user's data
@@ -68,14 +73,12 @@ usersRouter.post("/", (req, res) => {
 })
 
 // 2.
-usersRouter.get("/", (req, res) => {
+usersRouter.get("/", yetAnotherMiddleware, (req, res) => {
   // 1. Read the content of users.json file
   const fileContent = fs.readFileSync(usersJSONPath) // You obtain a BUFFER object, which is MACHINE READABLE ONLY (it could be "translated" tho)
-  console.log("CONTENT ", fileContent)
 
   // 2. Obtain an array from the file
   const usersArray = JSON.parse(fileContent) // JSON.parse() --> buffer to array
-  console.log("CONTENT AS A JSON ", usersArray)
 
   // 3. Send back the array as a response
 

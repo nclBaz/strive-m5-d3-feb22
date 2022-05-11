@@ -15,6 +15,7 @@ import fs from "fs" // CORE MODULE (no need to be installed!)
 import { fileURLToPath } from "url" // CORE MODULE
 import { dirname, join } from "path" // CORE MODULE
 import uniqid from "uniqid" // 3RD PARTY MODULE (needs to be installed!)
+import createError from "http-errors"
 
 const usersRouter = express.Router()
 
@@ -49,7 +50,7 @@ const yetAnotherMiddleware = (req, res, next) => {
 }
 
 // 1.
-usersRouter.post("/", (req, res) => {
+usersRouter.post("/", (req, res, next) => {
   // 1. Read the request body to obtain the new user's data
   console.log("REQ BODY: ", req.body) // remember to add express.json() in server.js!!!!
 
@@ -73,7 +74,7 @@ usersRouter.post("/", (req, res) => {
 })
 
 // 2.
-usersRouter.get("/", yetAnotherMiddleware, (req, res) => {
+usersRouter.get("/", yetAnotherMiddleware, (req, res, next) => {
   // 1. Read the content of users.json file
   const fileContent = fs.readFileSync(usersJSONPath) // You obtain a BUFFER object, which is MACHINE READABLE ONLY (it could be "translated" tho)
 
@@ -86,24 +87,32 @@ usersRouter.get("/", yetAnotherMiddleware, (req, res) => {
 })
 
 // 3.
-usersRouter.get("/:userId", (req, res) => {
-  // 1. Obtain userId from URL
-  const userID = req.params.userId
-  console.log("USER ID ", userID)
+usersRouter.get("/:userId", (req, res, next) => {
+  try {
+    // 1. Obtain userId from URL
+    const userID = req.params.userId
+    console.log("USER ID ", userID)
 
-  // 2. Read file --> obtaining an array
-  const users = JSON.parse(fs.readFileSync(usersJSONPath))
+    // 2. Read file --> obtaining an array
+    const users = JSON.parse(fs.readFileSync(usersJSONPath))
 
-  // 3. Find specific user in the array
-  const foundUser = users.find(user => user.id === userID) // = = =
+    // 3. Find specific user in the array
+    const foundUser = users.find(user => user.id === userID) // = = =
 
-  // 4. Send back a proper response
+    if (foundUser) {
+      // 4. Send back a proper response
 
-  res.send(foundUser)
+      res.send(foundUser)
+    } else {
+      next(createError(404, `User with id ${req.params.userId} not found!`))
+    }
+  } catch (error) {
+    next(error)
+  }
 })
 
 // 4.
-usersRouter.put("/:userId", (req, res) => {
+usersRouter.put("/:userId", (req, res, next) => {
   // 1. Read file --> obtaining an array of users
   const users = JSON.parse(fs.readFileSync(usersJSONPath))
 
@@ -123,7 +132,7 @@ usersRouter.put("/:userId", (req, res) => {
 })
 
 // 5.
-usersRouter.delete("/:userId", (req, res) => {
+usersRouter.delete("/:userId", (req, res, next) => {
   // 1. Read file --> obtaining an array of users
   const users = JSON.parse(fs.readFileSync(usersJSONPath))
 

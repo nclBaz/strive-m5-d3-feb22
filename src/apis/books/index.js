@@ -17,6 +17,8 @@ import { dirname, join } from "path" // CORE MODULE
 import uniqid from "uniqid"
 import createError from "http-errors"
 
+import { checkBookSchema, checkValidationResult } from "./validation.js"
+
 const booksRouter = express.Router()
 
 const booksJSONPath = join(dirname(fileURLToPath(import.meta.url)), "books.json") // C:\Strive\FullStack\2022\Feb22\M5\strive-m5-d3-feb22\src\apis\books\
@@ -25,7 +27,7 @@ const getBooks = () => JSON.parse(fs.readFileSync(booksJSONPath))
 const writeBooks = booksArray => fs.writeFileSync(booksJSONPath, JSON.stringify(booksArray))
 
 // 1.
-booksRouter.post("/", (req, res, next) => {
+booksRouter.post("/", checkBookSchema, checkValidationResult, (req, res, next) => {
   try {
     const newBook = { ...req.body, createdAt: new Date(), id: uniqid() }
 
